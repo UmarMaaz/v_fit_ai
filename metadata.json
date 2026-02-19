@@ -1,0 +1,7 @@
+{
+  "name": "V-Fit: AI Virtual Fitting Room",
+  "description": "A professional fashion-tech application that uses Gemini 2.5 Flash Image to realistically drape garments onto user photos while maintaining identity and pose.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
