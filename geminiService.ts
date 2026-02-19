@@ -1,38 +1,49 @@
-
 import { GoogleGenAI } from "@google/genai";
-import { ImageData, FitStyle, GeminiPart } from "./types";
+import { ImageData, FitStyle, GeminiPart, StylePreset } from "./types";
 
 const MAX_RETRIES = 5;
 const INITIAL_BACKOFF = 2000; // 2 seconds
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+const PRESET_PROMPTS: Record<StylePreset, string> = {
+  'Studio': 'Set the scene in a professional high-end minimalist photography studio with soft, even softbox lighting and a clean neutral background.',
+  'Street': 'Set the scene in a trendy metropolitan urban environment during golden hour. Include realistic depth of field with blurred city streets in the background.',
+  'Runway': 'Set the scene on a high-fashion runway with dramatic spotlights, a glossy floor reflecting the lights, and a blurred audience in the background.',
+  'Luxury': 'Set the scene in a mahogany-clad luxury penthouse or a marble-floored designer boutique with warm, opulent interior lighting.',
+  'Vibrant': 'Set the scene in a high-energy, colorful neon-lit pop-art environment with dynamic shadows and creative lighting.'
+};
+
 export async function generateFitting(
   personImage: ImageData,
   garmentImage: ImageData,
   fitStyle: FitStyle,
+  stylePreset: StylePreset,
   onRetry: (seconds: number) => void
 ): Promise<string> {
   const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || '' });
-  
+
   let retries = 0;
-  
+
   const attempt = async (): Promise<string> => {
     try {
+      const presetDescription = PRESET_PROMPTS[stylePreset];
       const prompt = `
-        TASK: Virtual Try-On / Fashion Compositing.
+        TASK: Virtual Try-On & High-Fidelity Fashion Compositing.
+        
+        ENVIRONMENT: ${presetDescription}
         
         INPUTS: 
-        1. Person Image: Use this as the BASE. Keep the person's identity, face, body pose, limb positions, and background 100% UNCHANGED.
-        2. Garment Image: Extract the color, fabric texture, patterns, and style from this item.
+        1. Person Image: Use this as the SUBJECT anchor. Keep the person's facial identity, skin tone, hair, and body proportions 100% consistent.
+        2. Garment Image: This is the EXACT item to be worn. Extract all textures, patterns, stitching, and material properties.
         
         INSTRUCTIONS:
-        - Dramatically replace the person's existing clothing with the provided garment.
-        - Drape the fabric realistically around the person's specific silhouette.
-        - Adjust for ${fitStyle.toLowerCase()} fit preferences: ensure the fabric folds and overlaps naturally based on this style.
-        - Maintain consistent lighting between the person and the new clothing.
-        - DO NOT change the person's head, hands, feet, or environment.
-        - The goal is a photorealistic "lookbook" style photograph.
+        - Replace all existing clothing on the subject with the provided garment.
+        - Drape the fabric realistically around the subject's specific body curvature.
+        - Style the fit as "${fitStyle.toLowerCase()}".
+        - The lighting on the new garment MUST match the environment lighting specified above.
+        - Ensure a photorealistic seamless transition at the neck, wrists, and ankles.
+        - Output a high-resolution, magazine-quality fashion photograph.
       `;
 
       const parts: GeminiPart[] = [
@@ -82,11 +93,11 @@ export async function generateFitting(
         retries++;
         return attempt();
       }
-      
+
       if (error.status === 403) {
         throw new Error("Access denied. Please check your API key permissions.");
       }
-      
+
       if (error.message?.includes("entity was not found")) {
         throw new Error("RE-AUTH_REQUIRED");
       }

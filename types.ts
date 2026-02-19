@@ -1,6 +1,6 @@
-
-export type AppMode = 'single' | 'batch';
+export type StylePreset = 'Studio' | 'Street' | 'Runway' | 'Luxury' | 'Vibrant';
 export type FitStyle = 'Tight' | 'Standard' | 'Loose';
+export type AppMode = 'single' | 'batch';
 
 export interface ImageData {
   id: string;
@@ -13,8 +13,10 @@ export interface GenerationResult {
   id: string;
   garmentName: string;
   imageUrl: string;
+  originalImageUrl?: string;
   status: 'pending' | 'success' | 'error';
   errorMessage?: string;
+  preset?: StylePreset;
 }
 
 export interface GeminiPart {

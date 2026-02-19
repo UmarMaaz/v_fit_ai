@@ -1,5 +1,7 @@
 
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Anchor, X, UserCheck, Accessibility, CheckCircle2, Sparkles } from 'lucide-react';
 
 interface ProcessModalProps {
   isOpen: boolean;
@@ -7,71 +9,96 @@ interface ProcessModalProps {
 }
 
 const ProcessModal: React.FC<ProcessModalProps> = ({ isOpen, onClose }) => {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 transform transition-all">
-        <div className="flex justify-between items-start mb-6">
-          <h2 className="text-2xl font-bold text-slate-800">Subject Anchoring Technology</h2>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-            <i className="fa-solid fa-xmark text-slate-500 text-xl"></i>
-          </button>
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-slate-900/80 backdrop-blur-md"
+          />
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            className="magic-glass rounded-[2rem] w-full max-w-xl overflow-hidden relative"
+          >
+            <div className="p-8 md:p-10">
+              <div className="flex justify-between items-start mb-10">
+                <div>
+                  <h2 className="text-3xl font-black tracking-tight mb-2 uppercase italic text-white flex items-center gap-3">
+                    <Sparkles className="text-indigo-400 w-8 h-8" />
+                    Generative Engine
+                  </h2>
+                  <p className="text-[10px] uppercase font-black tracking-[0.3em] text-white/40">Subject Anchoring Technology</p>
+                </div>
+                <button onClick={onClose} className="w-10 h-10 flex items-center justify-center hover:bg-white/5 rounded-full transition-colors">
+                  <X className="text-white/40 w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div className="p-6 bg-indigo-600/20 rounded-3xl border border-indigo-500/20">
+                  <div className="flex gap-4">
+                    <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shrink-0 shadow-lg shadow-indigo-600/40">
+                      <Anchor className="text-white w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-black text-indigo-100 uppercase tracking-widest text-xs mb-2">Advanced Anchoring</h3>
+                      <p className="text-sm text-indigo-100/70 leading-relaxed font-medium">
+                        Our AI processes your photo to "anchor" focal points—ensuring your physical identity and body pose remain 100% consistent while swapping clothing in a neural latent space.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-5 bg-white/5 border border-white/5 rounded-3xl hover:bg-white/10 transition-colors">
+                    <UserCheck className="text-indigo-400 w-6 h-6 mb-3" />
+                    <p className="font-black text-[10px] uppercase tracking-widest text-white mb-1">Identity Lock</p>
+                    <p className="text-[10px] text-white/40 font-bold leading-tight uppercase">Face and skin tone retention enabled.</p>
+                  </div>
+                  <div className="p-5 bg-white/5 border border-white/5 rounded-3xl hover:bg-white/10 transition-colors">
+                    <Accessibility className="text-indigo-400 w-6 h-6 mb-3" />
+                    <p className="font-black text-[10px] uppercase tracking-widest text-white mb-1">Pose Mapping</p>
+                    <p className="text-[10px] text-white/40 font-bold leading-tight uppercase">Precise body limb alignment architecture.</p>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-white/5">
+                  <h4 className="font-black text-white/40 mb-4 text-[10px] uppercase tracking-[0.3em]">Operational Guidelines</h4>
+                  <ul className="space-y-3">
+                    {[
+                      "High-contrast studio-style garment shots perform best.",
+                      "Avoid hands obscuring the primary torso/leg areas.",
+                      "Neutral backgrounds increase anchoring precision."
+                    ].map((tip, i) => (
+                      <li key={i} className="flex gap-3 items-center">
+                        <CheckCircle2 className="text-indigo-500 w-4 h-4 shrink-0" />
+                        <span className="text-[11px] font-bold text-white/70 uppercase">{tip}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={onClose}
+                className="w-full mt-10 bg-white text-slate-900 py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:bg-indigo-50 transition-colors shadow-xl"
+              >
+                PROCEED TO SESSION
+              </motion.button>
+            </div>
+          </motion.div>
         </div>
-        
-        <div className="space-y-4">
-          <div className="p-4 bg-indigo-50 rounded-2xl flex gap-4">
-            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shrink-0">
-              <i className="fa-solid fa-anchor text-white"></i>
-            </div>
-            <div>
-              <h3 className="font-semibold text-indigo-900">What is Subject Anchoring?</h3>
-              <p className="text-sm text-indigo-800/80 leading-relaxed">
-                Our AI uses specialized multi-part instructions to "anchor" your physical features, pose, and facial details while swapping clothing items in a high-fidelity latent space.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div className="p-3 border border-slate-200 rounded-xl">
-              <i className="fa-solid fa-user-check text-indigo-500 mb-2"></i>
-              <p className="font-medium">Maintains Identity</p>
-              <p className="text-xs text-slate-500">Your face and features remain 100% consistent.</p>
-            </div>
-            <div className="p-3 border border-slate-200 rounded-xl">
-              <i className="fa-solid fa-person-walking text-indigo-500 mb-2"></i>
-              <p className="font-medium">Pose Retention</p>
-              <p className="text-xs text-slate-500">Keeps your exact body positioning.</p>
-            </div>
-          </div>
-
-          <div className="mt-4 pt-4 border-t border-slate-100">
-            <h4 className="font-semibold text-slate-800 mb-2 text-sm uppercase tracking-wider">Tips for Success</h4>
-            <ul className="space-y-2 text-sm text-slate-600">
-              <li className="flex gap-2">
-                <i className="fa-solid fa-circle-check text-green-500 mt-1 shrink-0"></i>
-                <span>Use clear, well-lit photos with a simple background.</span>
-              </li>
-              <li className="flex gap-2">
-                <i className="fa-solid fa-circle-check text-green-500 mt-1 shrink-0"></i>
-                <span>Avoid hands covering your clothing area.</span>
-              </li>
-              <li className="flex gap-2">
-                <i className="fa-solid fa-circle-check text-green-500 mt-1 shrink-0"></i>
-                <span>Garment photos should be flat-lays or high-contrast studio shots.</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <button 
-          onClick={onClose}
-          className="w-full mt-8 bg-slate-900 text-white py-3 rounded-xl font-semibold hover:bg-slate-800 transition-colors"
-        >
-          Got it, let's fit!
-        </button>
-      </div>
-    </div>
+      )}
+    </AnimatePresence>
   );
 };
 
