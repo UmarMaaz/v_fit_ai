@@ -1,26 +1,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Shirt,
-  Sparkles,
-  Key,
-  Info,
-  SlidersHorizontal,
-  Image as ImageIcon,
-  Plus,
-  X,
-  Download,
-  RefreshCw,
-  AlertCircle,
-  Clock,
-  ChevronRight,
-  Maximize2
-} from 'lucide-react';
-import { AppMode, ImageData, FitStyle, GenerationResult, StylePreset } from './types';
+import { AppMode, ImageData, FitStyle, GenerationResult } from './types';
 import ImageUploader from './components/ImageUploader';
 import ProcessModal from './components/ProcessModal';
-import ComparisonSlider from './components/ComparisonSlider';
 import { generateFitting } from './geminiService';
 
 const App: React.FC = () => {
@@ -28,13 +10,13 @@ const App: React.FC = () => {
   const [personImage, setPersonImage] = useState<ImageData | undefined>();
   const [garments, setGarments] = useState<ImageData[]>([]);
   const [fitStyle, setFitStyle] = useState<FitStyle>('Standard');
-  const [stylePreset, setStylePreset] = useState<StylePreset>('Studio');
   const [results, setResults] = useState<GenerationResult[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [retryCountdown, setRetryCountdown] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Manage retry countdown timer
   useEffect(() => {
     let timer: any;
     if (retryCountdown !== null && retryCountdown > 0) {
@@ -51,9 +33,7 @@ const App: React.FC = () => {
     try {
       if (typeof window !== 'undefined' && (window as any).aistudio) {
         await (window as any).aistudio.openSelectKey();
-        window.location.reload();
-      } else {
-        setErrorMessage("API Key setup is managed via the .env file in this environment.");
+        window.location.reload(); // Refresh to ensure updated environment
       }
     } catch (err) {
       console.error("Failed to open key selector", err);
@@ -87,19 +67,17 @@ const App: React.FC = () => {
       id: Math.random().toString(36).substr(2, 9),
       garmentName: g.name,
       imageUrl: '',
-      originalImageUrl: personImage.base64,
-      status: 'pending',
-      preset: stylePreset
+      status: 'pending'
     }));
     setResults(newResults);
 
+    // Run generations
     for (let i = 0; i < garments.length; i++) {
       try {
         const resultUrl = await generateFitting(
           personImage,
           garments[i],
           fitStyle,
-          stylePreset,
           (seconds) => setRetryCountdown(seconds)
         );
 
@@ -123,332 +101,232 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen custom-scrollbar">
-      {/* Premium Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-4 py-4 md:px-8">
-        <div className="max-w-7xl mx-auto flex items-center justify-between magic-glass px-6 py-4 rounded-[1.5rem] md:rounded-[2rem]">
-          <div className="flex items-center gap-3">
-            <motion.div
-              whileHover={{ rotate: 180 }}
-              className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/40"
-            >
-              <Shirt className="text-white w-6 h-6" />
-            </motion.div>
-            <div className="hidden xs:block">
-              <h1 className="font-black text-xl tracking-tight leading-none">V-FIT <span className="text-indigo-500 font-normal">AI</span></h1>
-              <span className="text-[9px] uppercase font-black text-white/40 tracking-[0.2em]">Next-Gen Virtual Fitting</span>
-            </div>
+    <div className="min-h-screen pb-20">
+      {/* Header */}
+      <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
+            <i className="fa-solid fa-shirt text-white text-sm sm:text-base"></i>
           </div>
-
-          <div className="flex items-center gap-2 md:gap-4">
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="hidden sm:flex items-center gap-2 text-xs font-bold text-white/70 hover:text-white transition-colors py-2 px-4"
-            >
-              <Info className="w-4 h-4" />
-              HOW IT WORKS
-            </button>
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={handleSetupKey}
-              className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 border border-white/10"
-            >
-              <Key className="w-3 h-3 text-indigo-400" />
-              CONFIGURE
-            </motion.button>
+          <div>
+            <h1 className="font-bold text-lg sm:text-xl tracking-tight">V-Fit <span className="text-indigo-600">AI</span></h1>
+            <p className="hidden sm:block text-[10px] uppercase font-bold text-slate-400 tracking-widest">Virtual Fitting Room</p>
           </div>
         </div>
-      </nav>
 
-      <main className="max-w-7xl mx-auto px-4 md:px-8 mt-28 md:mt-32 pb-24 grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-        {/* Left Control Panel */}
-        <div className="lg:col-span-4 flex flex-col gap-6">
-          <motion.section
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="glass-card p-6 md:p-8"
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="hidden sm:flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors"
           >
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-xl font-black flex items-center gap-3">
-                <SlidersHorizontal className="text-indigo-400 w-5 h-5" />
-                CONTROLS
-              </h2>
-              <div className="flex bg-white/5 p-1 rounded-xl">
-                <button
-                  onClick={() => { setMode('single'); clearInputs(); }}
-                  className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${mode === 'single' ? 'bg-indigo-600 text-white' : 'text-white/40 hover:text-white/60'}`}
-                >
-                  Solo
-                </button>
-                <button
-                  onClick={() => { setMode('batch'); clearInputs(); }}
-                  className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${mode === 'batch' ? 'bg-indigo-600 text-white' : 'text-white/40 hover:text-white/60'}`}
-                >
-                  Batch
-                </button>
-              </div>
+            <i className="fa-solid fa-circle-info"></i>
+            How it works
+          </button>
+          <button
+            onClick={handleSetupKey}
+            className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2"
+          >
+            <i className="fa-solid fa-key text-slate-400"></i>
+            Setup API Key
+          </button>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-6 mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+        {/* Left Sidebar: Controls */}
+        <div className="lg:col-span-4 flex flex-col gap-4 sm:gap-6">
+          <section className="bg-white p-4 sm:p-6 rounded-[2rem] sm:rounded-3xl shadow-sm border border-slate-100">
+            <h2 className="text-base sm:text-lg font-bold mb-4 flex items-center gap-2 text-slate-800">
+              <i className="fa-solid fa-sliders text-indigo-500"></i>
+              Fitting Settings
+            </h2>
+
+            <div className="flex bg-slate-100 p-1 rounded-xl mb-6">
+              <button
+                onClick={() => { setMode('single'); clearInputs(); }}
+                className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${mode === 'single' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500'}`}
+              >
+                Single Item
+              </button>
+              <button
+                onClick={() => { setMode('batch'); clearInputs(); }}
+                className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${mode === 'batch' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500'}`}
+              >
+                Catalog Mode
+              </button>
             </div>
 
-            <div className="space-y-8">
+            <div className="space-y-6">
               <ImageUploader
-                label="01. BASE SUBJECT"
-                description="Upload a clear body shot"
+                label="Step 1: Your Photo"
+                description="Use a full-body or upper-body shot"
                 onImageSelect={setPersonImage}
                 currentImage={personImage}
               />
 
               <ImageUploader
-                label={mode === 'single' ? "02. GARMENT ITEM" : "02. ADD TO CATALOG"}
-                description="Flat-lay or studio shot"
+                label={mode === 'single' ? "Step 2: Garment Image" : "Step 2: Add Garments"}
+                description="Flat-lay or ghost mannequin preferred"
                 onImageSelect={handleAddGarment}
                 currentImage={mode === 'single' ? garments[0] : undefined}
               />
 
-              <AnimatePresence>
-                {mode === 'batch' && garments.length > 0 && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="flex flex-wrap gap-3 p-4 bg-white/5 rounded-2xl border border-white/10"
-                  >
-                    {garments.map((g, idx) => (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        key={g.id}
-                        className="relative group w-14 h-14"
-                      >
-                        <img src={`data:${g.mimeType};base64,${g.base64}`} className="w-full h-full object-cover rounded-xl border border-white/20 shadow-lg" />
-                        <button
-                          onClick={() => setGarments(prev => prev.filter((_, i) => i !== idx))}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] block mb-4">DRAPE PREFERENCE</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {(['Tight', 'Standard', 'Loose'] as FitStyle[]).map((style) => (
+              {mode === 'batch' && garments.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {garments.map((g, idx) => (
+                    <div key={idx} className="relative group w-12 h-12">
+                      <img src={`data:${g.mimeType};base64,${g.base64}`} className="w-full h-full object-cover rounded-lg border border-slate-200" />
                       <button
-                        key={style}
-                        onClick={() => setFitStyle(style)}
-                        className={`
-                          py-3 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all
-                          ${fitStyle === style ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10 hover:text-white'}
-                        `}
+                        onClick={() => setGarments(prev => prev.filter((_, i) => i !== idx))}
+                        className="absolute -top-1 -right-1 bg-red-500 text-white w-4 h-4 rounded-full flex items-center justify-center text-[8px] opacity-0 group-hover:opacity-100"
                       >
-                        {style}
+                        <i className="fa-solid fa-x"></i>
                       </button>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
+              )}
 
-                <div>
-                  <label className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] block mb-4">MAGIC SCENE SELECTOR</label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {(['Studio', 'Street', 'Runway', 'Luxury', 'Vibrant'] as StylePreset[]).map((preset) => (
-                      <button
-                        key={preset}
-                        onClick={() => setStylePreset(preset)}
-                        className={`
-                          py-3 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all
-                          ${stylePreset === preset ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-white/5 border-white/10 text-white/40 hover:text-white'}
-                        `}
-                      >
-                        {preset}
-                      </button>
-                    ))}
-                  </div>
+              <div className="pt-4 border-t border-slate-50">
+                <label className="text-sm font-semibold text-slate-700 block mb-3">Fit & Drape Style</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(['Tight', 'Standard', 'Loose'] as FitStyle[]).map((style) => (
+                    <button
+                      key={style}
+                      onClick={() => setFitStyle(style)}
+                      className={`
+                        py-2 px-3 text-xs font-bold rounded-xl border transition-all
+                        ${fitStyle === style ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-slate-200 text-slate-500 hover:border-indigo-300'}
+                      `}
+                    >
+                      {style}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              <button
                 disabled={isProcessing || !personImage || garments.length === 0}
                 onClick={handleGenerate}
                 className={`
-                  w-full py-5 rounded-[1.5rem] font-black text-sm uppercase tracking-[0.2em] shadow-2xl transition-all flex items-center justify-center gap-3
-                  ${isProcessing ? 'bg-white/5 text-white/20 cursor-not-allowed border border-white/5' : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-500/30'}
+                  w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-all flex items-center justify-center gap-2
+                  ${isProcessing ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200 active:scale-[0.98]'}
                 `}
               >
                 {isProcessing ? (
                   <>
-                    <RefreshCw className="w-5 h-5 animate-spin" />
-                    PROCESSING
+                    <i className="fa-solid fa-spinner fa-spin"></i>
+                    Generating...
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-5 h-5" />
-                    LAUNCH V-FIT
+                    <i className="fa-solid fa-wand-magic-sparkles"></i>
+                    Start Fitting
                   </>
                 )}
-              </motion.button>
+              </button>
             </div>
-          </motion.section>
+          </section>
 
-          <AnimatePresence>
-            {retryCountdown !== null && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-amber-500/10 border border-amber-500/20 p-5 rounded-3xl flex items-center gap-4 backdrop-blur-md"
-              >
-                <div className="w-12 h-12 bg-amber-500/20 rounded-2xl flex items-center justify-center text-amber-500 shrink-0">
-                  <Clock className="w-6 h-6 animate-pulse" />
-                </div>
-                <div>
-                  <p className="text-xs font-black text-amber-500 uppercase tracking-widest">Rate Limit Active</p>
-                  <p className="text-[10px] text-amber-500/70 font-bold">Auto-retry in {retryCountdown}s</p>
-                </div>
-              </motion.div>
-            )}
+          {retryCountdown !== null && (
+            <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex items-center gap-4">
+              <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 animate-pulse">
+                <i className="fa-solid fa-hourglass-half"></i>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-amber-800">Rate limit reached</p>
+                <p className="text-xs text-amber-700">Retrying automatically in {retryCountdown}s...</p>
+              </div>
+            </div>
+          )}
 
-            {errorMessage && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-red-500/10 border border-red-500/20 p-5 rounded-3xl flex items-center gap-4 backdrop-blur-md"
-              >
-                <div className="w-12 h-12 bg-red-500/20 rounded-2xl flex items-center justify-center text-red-500 shrink-0">
-                  <AlertCircle className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-xs font-black text-red-500 uppercase tracking-widest">System Error</p>
-                  <p className="text-[10px] text-red-500/70 font-bold">{errorMessage}</p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {errorMessage && (
+            <div className="bg-red-50 border border-red-100 p-4 rounded-2xl flex items-center gap-4">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center text-red-600">
+                <i className="fa-solid fa-circle-exclamation"></i>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-red-800">Error</p>
+                <p className="text-xs text-red-700">{errorMessage}</p>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Right Preview/Result Panel */}
+        {/* Right Area: Results */}
         <div className="lg:col-span-8">
-          <AnimatePresence mode="wait">
-            {results.length === 0 && !isProcessing ? (
-              <motion.div
-                key="empty"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 1.05 }}
-                className="bg-white/5 border-2 border-dashed border-white/10 rounded-[3rem] h-full min-h-[500px] flex flex-col items-center justify-center text-center p-8 backdrop-blur-xl"
-              >
-                <div className="w-32 h-32 rounded-full bg-white/5 flex items-center justify-center mb-8 animate-float">
-                  <ImageIcon className="w-12 h-12 text-white/10" />
+          {results.length === 0 && !isProcessing ? (
+            <div className="bg-white border-2 border-dashed border-slate-200 rounded-[3rem] h-[600px] flex flex-col items-center justify-center text-slate-400">
+              <div className="w-24 h-24 rounded-full bg-slate-50 flex items-center justify-center mb-6">
+                <i className="fa-solid fa-images text-4xl text-slate-200"></i>
+              </div>
+              <h3 className="text-xl font-semibold text-slate-600">Your results will appear here</h3>
+              <p className="text-sm mt-2 max-w-xs text-center">Upload your photo and garments on the left to begin the magic of AI subject anchoring.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+              {results.map((res) => (
+                <div key={res.id} className="bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100 group">
+                  <div className="aspect-[3/4] relative bg-slate-50">
+                    {res.status === 'pending' ? (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
+                        <div className="relative">
+                          <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <i className="fa-solid fa-scissors text-indigo-400 animate-bounce text-sm sm:text-base"></i>
+                          </div>
+                        </div>
+                        <p className="mt-4 text-xs sm:text-sm font-bold text-indigo-600 animate-pulse text-center">Tailoring {res.garmentName}...</p>
+                        <p className="text-[8px] sm:text-[10px] text-slate-400 mt-1 uppercase tracking-widest font-bold">Anchoring Subject</p>
+                      </div>
+                    ) : res.status === 'error' ? (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center p-6 sm:p-8 text-center">
+                        <i className="fa-solid fa-triangle-exclamation text-3xl sm:text-4xl text-red-300 mb-4"></i>
+                        <p className="text-xs sm:text-sm font-bold text-slate-800">Something went wrong</p>
+                        <p className="text-[10px] sm:text-xs text-slate-500 mt-2">{res.errorMessage}</p>
+                        <button
+                          onClick={handleGenerate}
+                          className="mt-4 sm:mt-6 text-[10px] sm:text-xs font-bold text-indigo-600 uppercase tracking-widest hover:text-indigo-700"
+                        >
+                          Retry Generation
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <img
+                          src={res.imageUrl}
+                          alt="Fitting result"
+                          className="w-full h-full object-cover transition-transform duration-700 sm:group-hover:scale-105"
+                        />
+                        <div className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-white/90 backdrop-blur px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full shadow-sm">
+                          <p className="text-[9px] sm:text-[10px] font-bold text-indigo-600 uppercase tracking-tighter">AI Fitting • {fitStyle}</p>
+                        </div>
+                        <div className="absolute bottom-0 inset-x-0 p-4 sm:p-6 bg-gradient-to-t from-black/60 to-transparent translate-y-4 sm:group-hover:translate-y-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all">
+                          <div className="flex justify-between items-center">
+                            <p className="text-white text-xs sm:text-sm font-semibold truncate pr-4">{res.garmentName}</p>
+                            <a
+                              href={res.imageUrl}
+                              download={`vfit-${res.id}.png`}
+                              className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-lg sm:rounded-xl flex items-center justify-center text-slate-900 hover:bg-indigo-600 hover:text-white transition-colors"
+                            >
+                              <i className="fa-solid fa-download text-sm sm:text-base"></i>
+                            </a>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
-                <h3 className="text-2xl font-black mb-4 uppercase tracking-tighter italic">Ready for fitting</h3>
-                <p className="text-sm text-white/40 max-w-sm font-medium leading-relaxed">
-                  Start your virtual session by uploading a base photo and items from your wardrobe.
-                </p>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="results"
-                layout
-                className="grid grid-cols-1 md:grid-cols-2 gap-6"
-              >
-                {results.map((res) => (
-                  <motion.div
-                    layout
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    key={res.id}
-                    className="glass-card group overflow-hidden"
-                  >
-                    <div className="aspect-[3/4] relative bg-white/5">
-                      {res.status === 'pending' ? (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                          <div className="relative">
-                            <motion.div
-                              animate={{ rotate: 360 }}
-                              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                              className="w-20 h-20 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full"
-                            />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <Sparkles className="w-8 h-8 text-indigo-400 animate-pulse" />
-                            </div>
-                          </div>
-                          <div className="mt-8 text-center px-6">
-                            <p className="text-xs font-black uppercase tracking-[0.3em] text-indigo-400">Generative Tailoring</p>
-                            <p className="text-[10px] text-white/20 mt-2 font-bold max-w-[200px]">Anchoring body features and material properties in latent space...</p>
-                          </div>
-                        </div>
-                      ) : res.status === 'error' ? (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
-                          <AlertCircle className="w-12 h-12 text-red-400/50 mb-6" />
-                          <p className="text-xs font-black uppercase tracking-widest text-red-400">Generation Failed</p>
-                          <p className="text-[10px] text-white/30 mt-2 font-bold">{res.errorMessage}</p>
-                          <motion.button
-                            whileTap={{ scale: 0.9 }}
-                            onClick={handleGenerate}
-                            className="mt-8 text-[10px] font-black uppercase tracking-[0.2em] bg-white/5 hover:bg-white/10 px-6 py-3 rounded-xl border border-white/10 transition-all"
-                          >
-                            RETRY SESSION
-                          </motion.button>
-                        </div>
-                      ) : (
-                        <div className="relative w-full h-full group">
-                          {res.originalImageUrl ? (
-                            <ComparisonSlider
-                              beforeImage={res.originalImageUrl}
-                              afterImage={res.imageUrl}
-                            />
-                          ) : (
-                            <img
-                              src={res.imageUrl}
-                              alt="Result"
-                              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                            />
-                          )}
+              ))}
 
-                          <div className="absolute bottom-0 inset-x-0 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent translate-y-4 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all pointer-events-none">
-                            <div className="flex justify-between items-end pointer-events-auto">
-                              <div className="flex-1 min-w-0 pr-4">
-                                <span className="text-[8px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-1 block">Style: {res.preset}</span>
-                                <p className="text-white text-sm font-black truncate uppercase">{res.garmentName}</p>
-                              </div>
-                              <motion.a
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.9 }}
-                                href={res.imageUrl}
-                                download={`vfit-${res.id}.png`}
-                                className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-600/40"
-                              >
-                                <Download className="w-5 h-5" />
-                              </motion.a>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                ))}
-
-                {isProcessing && garments.length > results.length && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="bg-white/5 rounded-[2.5rem] border-2 border-dashed border-white/10 flex flex-col items-center justify-center min-h-[400px] text-center p-8"
-                  >
-                    <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mb-4">
-                      <ChevronRight className="w-5 h-5 text-white/20" />
-                    </div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Next item in queue</p>
-                  </motion.div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
+              {isProcessing && garments.length > results.length && (
+                <div className="bg-slate-50 rounded-[2rem] sm:rounded-[2.5rem] border-2 border-dashed border-slate-200 flex items-center justify-center h-full min-h-[300px] sm:min-h-[400px]">
+                  <p className="text-slate-400 font-medium text-sm sm:text-base text-center px-4">Queueing next items...</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </main>
 
@@ -457,18 +335,13 @@ const App: React.FC = () => {
         onClose={() => setIsModalOpen(false)}
       />
 
-      {/* Floating Action Button for Mobile Settings */}
-      <motion.button
-        initial={{ y: 100 }}
-        animate={{ y: 0 }}
-        onClick={() => {
-          const el = document.querySelector('section');
-          el?.scrollIntoView({ behavior: 'smooth' });
-        }}
-        className="fixed bottom-6 right-6 lg:hidden w-16 h-16 bg-indigo-600 shadow-2xl rounded-3xl flex items-center justify-center text-white z-40"
+      {/* Floating helper for mobile */}
+      <button
+        onClick={() => setIsModalOpen(true)}
+        className="fixed bottom-6 right-6 lg:hidden w-14 h-14 bg-white shadow-2xl rounded-2xl flex items-center justify-center border border-slate-100 z-50"
       >
-        <SlidersHorizontal className="w-6 h-6" />
-      </motion.button>
+        <i className="fa-solid fa-info text-indigo-600"></i>
+      </button>
     </div>
   );
 };

@@ -1,73 +1,35 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Global Styles */
 
 :root {
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
-  --bg-main: #f8fafc;
-  --glass: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.3);
+    font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+
+    color-scheme: light dark;
+    color: rgba(255, 255, 255, 0.87);
+    background-color: #242424;
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-@layer base {
-  body {
-    @apply bg-slate-50 text-slate-900 antialiased overflow-x-hidden;
-    background: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
-                radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
-                radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
-    background-attachment: fixed;
-    background-color: #0f1115;
-    color: white;
-  }
+body {
+    margin: 0;
+    display: flex;
+    place-items: center;
+    min-width: 320px;
+    min-height: 100vh;
 }
 
-@layer components {
-  .magic-glass {
-    @apply backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl;
-  }
-  
-  .glass-card {
-    @apply backdrop-blur-md bg-white/5 border border-white/10 rounded-[2rem] shadow-xl hover:bg-white/10 transition-all duration-300;
-  }
-
-  .btn-primary {
-    @apply bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 px-8 rounded-2xl shadow-lg shadow-indigo-500/30 active:scale-95 transition-all flex items-center justify-center gap-2;
-  }
-
-  .mesh-gradient {
-    background-color:hsla(228,0%,0%,1);
-    background-image:
-    radial-gradient(at 100% 0%, hsla(234,47%,56%,1) 0, transparent 50%),
-    radial-gradient(at 0% 100%, hsla(234,47%,56%,1) 0, transparent 50%),
-    radial-gradient(at 0% 0%, hsla(340,100%,76%,1) 0, transparent 50%),
-    radial-gradient(at 100% 100%, hsla(340,100%,76%,1) 0, transparent 50%);
-  }
+#root {
+    width: 100%;
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
+@media (prefers-color-scheme: light) {
+    :root {
+        color: #213547;
+        background-color: #ffffff;
+    }
 }
